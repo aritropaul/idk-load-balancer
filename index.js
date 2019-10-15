@@ -34,10 +34,17 @@ const profilerMiddleware = (req, res, next) => {
 
 const serverHandler = (req,res) => {
     cur = balancer(lastServer)
+    if (cur == 0) {
+        cur = 0
+    }
+    else {
+        cur = cur - 1
+    }
     console.log(cur)
     req.pipe(request({ url: `http://localhost:${3000+cur}` + req.url })).pipe(res);
     res.send(`Hello from server ${3000+cur}!`);
     lastServer = cur
+    // cur = (cur + 1) % servers.length
     // setTimeout(() => { res.send(`Hello from server ${3000+cur}!`); }, 500);
 }
 
