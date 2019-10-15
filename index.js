@@ -1,9 +1,11 @@
 const express = require('express')
 const request = require('request')
 const body = require('body-parser');
+const balancer = require('./pathfinder')
 
 const servers = [express(),express(),express(),express()]
 let cur = 0
+var lastServer = -1
 
 
 const handler = serverNum => (req,res) => {
@@ -31,15 +33,13 @@ const profilerMiddleware = (req, res, next) => {
   };
 
 const serverHandler = (req,res) => {
+    cur = balancer(lastServer)
+    console.log(cur)
     req.pipe(request({ url: `http://localhost:${3000+cur}` + req.url })).pipe(res);
     res.send(`Hello from server ${3000+cur}!`);
+    lastServer = cur
     // setTimeout(() => { res.send(`Hello from server ${3000+cur}!`); }, 500);
-    cur = (cur + 1) % servers.length;
 }
 
-const plotHandler = (req,res) => {
-
-}
-
-mainServer.use(profilerMiddleware).get("/", serverHandler).post("/", serverHandler).get("/plot", plotHandler)
+mainServer.use(profilerMiddleware).get("/", serverHandler).post("/", serverHandler)
 mainServer.listen(8000, () => console.log(`listening on port ${8000}`))
